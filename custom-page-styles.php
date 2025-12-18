@@ -3,7 +3,7 @@
  * Plugin Name: Custom Page Styles Manager
  * Plugin URI: https://example.com/custom-page-styles
  * Description: ページ固有のカスタムスタイルシート管理機能を提供します。各ページにカスタムCSSを記述し、過去のスタイルシートを再利用できます。
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Your Name
  * Author URI: https://example.com
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ class Custom_Page_Styles_Manager {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.1';
+	const VERSION = '1.0.2';
 
 	/**
 	 * Meta key for custom CSS content
@@ -98,7 +98,7 @@ class Custom_Page_Styles_Manager {
 		add_action( 'save_post', array( $this, 'save_meta_box' ), 10, 2 );
 
 		// Frontend hooks
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_custom_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_custom_styles' ), 20 );
 
 		// Activation hook
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
