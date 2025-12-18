@@ -3,7 +3,7 @@
  * Plugin Name: Custom Page Styles Manager
  * Plugin URI: https://example.com/custom-page-styles
  * Description: ページ固有のカスタムスタイルシート管理機能を提供します。各ページにカスタムCSSを記述し、過去のスタイルシートを再利用できます。
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Your Name
  * Author URI: https://example.com
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ class Custom_Page_Styles_Manager {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Meta key for custom CSS content
@@ -348,6 +348,13 @@ class Custom_Page_Styles_Manager {
 	 * @param WP_Post $post Post object
 	 */
 	public function render_meta_box( $post ) {
+		// Display error message if exists
+		$error_message = get_transient( 'custom_page_styles_error_' . $post->ID );
+		if ( $error_message ) {
+			echo '<div class="notice notice-error"><p>' . esc_html( $error_message ) . '</p></div>';
+			delete_transient( 'custom_page_styles_error_' . $post->ID );
+		}
+
 		// Add nonce field
 		wp_nonce_field( 'custom_page_styles_save', 'custom_page_styles_nonce' );
 
@@ -473,13 +480,24 @@ class Custom_Page_Styles_Manager {
 		// Save custom CSS
 		if ( isset( $_POST['custom_page_styles_css'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in sanitize_css() method
-			$custom_css = $this->sanitize_css( wp_unslash( $_POST['custom_page_styles_css'] ) );
+			$sanitized_css = $this->sanitize_css( wp_unslash( $_POST['custom_page_styles_css'] ) );
 
-			if ( ! empty( $custom_css ) ) {
-				update_post_meta( $post_id, self::META_KEY_CSS, $custom_css );
+			// Check for errors
+			if ( is_wp_error( $sanitized_css ) ) {
+				// Store error message in transient for display
+				set_transient(
+					'custom_page_styles_error_' . $post_id,
+					$sanitized_css->get_error_message(),
+					45
+				);
+				return;
+			}
+
+			if ( ! empty( $sanitized_css ) ) {
+				update_post_meta( $post_id, self::META_KEY_CSS, $sanitized_css );
 
 				// Generate CSS file
-				$this->generate_css_file( $post_id, $custom_css );
+				$this->generate_css_file( $post_id, $sanitized_css );
 			} else {
 				// Delete meta and file if CSS is empty
 				delete_post_meta( $post_id, self::META_KEY_CSS );
@@ -509,37 +527,60 @@ class Custom_Page_Styles_Manager {
 	 * Sanitize CSS input
 	 *
 	 * @param string $css Raw CSS input
-	 * @return string Sanitized CSS
+	 * @return string|WP_Error Sanitized CSS or WP_Error on failure
 	 */
 	private function sanitize_css( $css ) {
-		// Remove all tags
+		if ( empty( $css ) ) {
+			return '';
+		}
+
+		// Remove all tags and strip slashes
 		$css = wp_strip_all_tags( $css );
+		$css = stripslashes( $css );
+
+		// File size limit (1MB)
+		if ( strlen( $css ) > 1048576 ) {
+			return new WP_Error(
+				'css_too_large',
+				__( 'CSS code is too large. Maximum size is 1MB.', 'custom-page-styles' )
+			);
+		}
+
+		// Detect dangerous patterns (case-insensitive, accounting for whitespace)
+		$dangerous_patterns = array(
+			'/@\s*import/i',                    // @import (with whitespace)
+			'/javascript\s*:/i',                // javascript:
+			'/expression\s*\(/i',               // expression(
+			'/behavior\s*:/i',                  // behavior:
+			'/-moz-binding/i',                  // -moz-binding
+			'/data\s*:\s*text\s*\/\s*html/i',  // data:text/html
+			'/vbscript\s*:/i',                  // vbscript:
+			'/<script/i',                       // <script tag
+			'/onclick/i',                       // onclick events
+			'/onerror/i',                       // onerror
+			'/onload/i',                        // onload
+			'/onmouseover/i',                   // onmouseover
+			'/onfocus/i',                       // onfocus
+		);
+
+		foreach ( $dangerous_patterns as $pattern ) {
+			if ( preg_match( $pattern, $css ) ) {
+				return new WP_Error(
+					'dangerous_css',
+					__( 'CSS contains potentially dangerous code.', 'custom-page-styles' )
+				);
+			}
+		}
 
 		// Basic CSS validation - check for balanced braces
 		$open_braces  = substr_count( $css, '{' );
 		$close_braces = substr_count( $css, '}' );
 
 		if ( $open_braces !== $close_braces ) {
-			add_settings_error(
-				'custom_page_styles_messages',
-				'css_validation_error',
-				__( 'CSS validation error: Unbalanced braces detected.', 'custom-page-styles' ),
-				'error'
+			return new WP_Error(
+				'invalid_css',
+				__( 'CSS validation error: Unbalanced braces detected.', 'custom-page-styles' )
 			);
-			return '';
-		}
-
-		// Remove potentially dangerous CSS properties
-		$dangerous_patterns = array(
-			'/@import/i',
-			'/javascript:/i',
-			'/expression\s*\(/i',
-			'/behavior\s*:/i',
-			'/-moz-binding/i',
-		);
-
-		foreach ( $dangerous_patterns as $pattern ) {
-			$css = preg_replace( $pattern, '', $css );
 		}
 
 		return trim( $css );
@@ -581,11 +622,23 @@ class Custom_Page_Styles_Manager {
 		$filename = 'post-styles-' . $post_id . '.css';
 		$css_file = trailingslashit( $css_dir ) . $filename;
 
-		// Verify the file path is within the expected directory (prevent path traversal)
-		$real_css_dir = realpath( $css_dir );
-		$real_css_file = realpath( dirname( $css_file ) ) . '/' . basename( $css_file );
+		// Enhanced path traversal protection
+		$css_dir_real = realpath( $css_dir );
+		if ( ! $css_dir_real ) {
+			add_settings_error(
+				'custom_page_styles_messages',
+				'invalid_directory',
+				__( 'CSS directory does not exist.', 'custom-page-styles' ),
+				'error'
+			);
+			return false;
+		}
 
-		if ( false === $real_css_dir || false === strpos( $real_css_file, $real_css_dir ) ) {
+		// Verify the file will be created in the correct directory
+		$css_file_dir = dirname( $css_file );
+		$css_file_dir_real = realpath( $css_file_dir );
+
+		if ( ! $css_file_dir_real || strpos( $css_file_dir_real, $css_dir_real ) !== 0 ) {
 			add_settings_error(
 				'custom_page_styles_messages',
 				'path_traversal_error',
