@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name: Custom Page Styles Manager
- * Plugin URI: https://example.com/custom-page-styles
- * Description: ページ固有のカスタムスタイルシート管理機能を提供します。各ページにカスタムCSSを記述し、過去のスタイルシートを再利用できます。
- * Version: 1.0.2
- * Author: Your Name
- * Author URI: https://example.com
+ * Plugin Name: Custom Page Styles
+ * Plugin URI: https://github.com/monsieurNoiR/custom-page-styles-plugin
+ * Description: Manage custom CSS for each page/post with unique reusability feature. Write CSS directly in the editor and reuse styles across multiple pages.
+ * Version: 1.0.0
+ * Requires at least: 5.0
+ * Requires PHP: 7.4
+ * Author: Masaki Kobayashi (studioNoiR)
+ * Author URI: https://github.com/monsieurNoiR
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: custom-page-styles
  * Domain Path: /languages
- * Requires at least: 5.0
- * Requires PHP: 7.4
  *
  * @package CustomPageStyles
  */
