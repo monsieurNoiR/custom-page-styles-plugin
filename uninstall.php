@@ -16,24 +16,24 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 /**
  * Clean up plugin data
  */
-function custom_page_styles_uninstall() {
+function sn_cps_uninstall() {
 	global $wpdb;
 
 	// Remove all post meta data
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s OR meta_key = %s",
-			'_custom_page_styles_css',
-			'_custom_page_styles_selected'
+			'_sn_cps_css',
+			'_sn_cps_selected'
 		)
 	);
 
 	// Remove plugin options
-	delete_option( 'custom_page_styles_enabled_post_types' );
+	delete_option( 'sn_cps_enabled_post_types' );
 
 	// Remove CSS files directory
 	$upload_dir = wp_upload_dir();
-	$css_dir    = trailingslashit( $upload_dir['basedir'] ) . 'custom-page-styles';
+	$css_dir    = trailingslashit( $upload_dir['basedir'] ) . 'sn-cps-styles';
 
 	if ( file_exists( $css_dir ) ) {
 		// Use WordPress Filesystem API for safe file deletion
@@ -61,4 +61,4 @@ function custom_page_styles_uninstall() {
 }
 
 // Execute uninstall
-custom_page_styles_uninstall();
+sn_cps_uninstall();

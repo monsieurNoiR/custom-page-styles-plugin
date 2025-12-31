@@ -1,4 +1,4 @@
-=== Custom Page Styles ===
+=== Studio Noir Custom Page Styles ===
 Contributors: studionoir
 Tags: css, custom css, page styles, post styles, reusable css
 Requires at least: 5.0
@@ -8,16 +8,16 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Manage custom CSS for each page/post with unique reusability feature.
+Manage custom CSS for each page/post with reusability feature.
 
 == Description ==
 
-Custom Page Styles allows you to add custom CSS to individual pages and posts, with a unique feature to reuse styles across multiple pages.
+Studio Noir Custom Page Styles allows you to add custom CSS to individual pages and posts, with a feature to reuse styles across multiple pages.
 
 = Key Features =
 
 * Write custom CSS directly in the page/post editor
-* **Reuse existing styles on other pages** (unique feature!)
+* **Reuse existing styles on other pages**
 * Automatically generates CSS files for better performance
 * Choose which post types to enable
 * Secure and WordPress coding standards compliant
@@ -41,7 +41,7 @@ Custom Page Styles allows you to add custom CSS to individual pages and posts, w
 = Automatic Installation =
 
 1. Go to Plugins > Add New
-2. Search for "Custom Page Styles"
+2. Search for "Studio Noir Custom Page Styles"
 3. Click "Install Now"
 4. Activate the plugin
 
@@ -71,11 +71,11 @@ Yes, Custom Page Styles works with any WordPress theme.
 
 = Can I reuse styles across multiple pages? =
 
-Yes! This is our unique feature. When editing a page, you can select an existing style from another page via the dropdown menu.
+Yes! When editing a page, you can select an existing style from another page via the dropdown menu.
 
 = Where are the CSS files stored? =
 
-CSS files are automatically generated and stored in `/wp-content/uploads/custom-page-styles/`
+CSS files are automatically generated and stored in `/wp-content/uploads/sn-cps-styles/`
 
 = Does this affect site performance? =
 
@@ -83,7 +83,7 @@ No, CSS is generated as separate files and only loaded on the relevant pages, wh
 
 = Can I use this with page builders? =
 
-Yes, Custom Page Styles works alongside page builders like Elementor, Gutenberg, and the Classic Editor.
+Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor, Gutenberg, and the Classic Editor.
 
 = What if the meta box doesn't appear? =
 
@@ -112,4 +112,4 @@ Yes, Custom Page Styles works alongside page builders like Elementor, Gutenberg,
 == Upgrade Notice ==
 
 = 1.0.0 =
-Initial release of Custom Page Styles.
+Initial release of Studio Noir Custom Page Styles.
