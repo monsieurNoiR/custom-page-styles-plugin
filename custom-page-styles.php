@@ -254,7 +254,7 @@ class SN_CPS_Manager {
 				'<label><input type="checkbox" name="%s[]" value="%s" %s /> %s</label><br>',
 				esc_attr( self::SN_CPS_OPTION_ENABLED_POST_TYPES ),
 				esc_attr( $post_type->name ),
-				$checked,
+				esc_attr( $checked ),
 				esc_html( $post_type->label )
 			);
 		}
@@ -455,9 +455,8 @@ class SN_CPS_Manager {
 	 */
 	public function save_meta_box( $post_id, $post ) {
 		// Verify nonce
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verification doesn't require sanitization
 		if ( ! isset( $_POST['sn_cps_nonce'] ) ||
-		     ! wp_verify_nonce( wp_unslash( $_POST['sn_cps_nonce'] ), 'sn_cps_save' ) ) {
+		     ! wp_verify_nonce( sanitize_text_field(wp_unslash( $_POST['sn_cps_nonce'] )), 'sn_cps_save' ) ) {
 			return;
 		}
 
