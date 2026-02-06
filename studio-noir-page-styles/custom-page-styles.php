@@ -3,7 +3,7 @@
  * Plugin Name: Studio Noir Custom Page Styles
  * Plugin URI: https://github.com/monsieurNoiR/custom-page-styles-plugin
  * Description: Manage custom CSS for each page/post with reusability feature. Write CSS directly in the editor and reuse styles across multiple pages.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * Author: Masaki Kobayashi (studioNoiR)
@@ -31,7 +31,7 @@ class SN_CPS_Manager {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.2';
+	const VERSION = '1.1.0';
 
 	/**
 	 * Meta key for custom CSS content
@@ -323,6 +323,9 @@ class SN_CPS_Manager {
 			return;
 		}
 
+		// Enqueue jQuery UI Sortable for drag & drop functionality
+		wp_enqueue_script( 'jquery-ui-sortable' );
+
 		// Inline CSS for better UX
 		$custom_css = "
 			.sn-cps-meta-box textarea#sn_cps_css {
@@ -359,8 +362,13 @@ class SN_CPS_Manager {
 		wp_nonce_field( 'sn_cps_save', 'sn_cps_nonce' );
 
 		// Get current values
-		$custom_css      = get_post_meta( $post->ID, self::SN_CPS_META_KEY_CSS, true );
-		$selected_style  = get_post_meta( $post->ID, self::SN_CPS_META_KEY_SELECTED, true );
+		$custom_css       = get_post_meta( $post->ID, self::SN_CPS_META_KEY_CSS, true );
+		$selected_styles  = get_post_meta( $post->ID, self::SN_CPS_META_KEY_SELECTED, true );
+		
+		// Ensure it's an array (backward compatibility)
+		if ( ! is_array( $selected_styles ) ) {
+			$selected_styles = ! empty( $selected_styles ) ? array( $selected_styles ) : array();
+		}
 
 		// Get all posts with custom styles
 		$available_styles = $this->get_available_styles( $post->ID );
@@ -385,25 +393,144 @@ class SN_CPS_Manager {
 			<hr style="margin: 20px 0;">
 
 			<p>
-				<label for="sn_cps_selected">
-					<strong><?php esc_html_e( 'Or select an existing stylesheet:', 'studio-noir-page-styles' ); ?></strong>
-				</label>
+				<strong><?php esc_html_e( 'Add existing stylesheets:', 'studio-noir-page-styles' ); ?></strong>
 			</p>
-			<p>
-				<select id="sn_cps_selected" name="sn_cps_selected" style="width: 100%;">
-					<option value=""><?php esc_html_e( '-- None --', 'studio-noir-page-styles' ); ?></option>
+			
+			<div class="sn-cps-add-style" style="margin-bottom: 15px;">
+				<select id="sn_cps_available_styles" style="width: 70%; max-width: 400px;">
+					<option value=""><?php esc_html_e( '-- Select a style to add --', 'studio-noir-page-styles' ); ?></option>
 					<?php foreach ( $available_styles as $style_post_id => $style_title ) : ?>
-						<option value="<?php echo esc_attr( $style_post_id ); ?>" <?php selected( $selected_style, $style_post_id ); ?>>
-							<?php echo esc_html( $style_title ); ?>
-						</option>
+						<?php if ( ! in_array( $style_post_id, $selected_styles, true ) ) : ?>
+							<option value="<?php echo esc_attr( $style_post_id ); ?>">
+								<?php echo esc_html( $style_title ); ?>
+							</option>
+						<?php endif; ?>
 					<?php endforeach; ?>
 				</select>
-			</p>
+				<button type="button" id="sn_cps_add_style_btn" class="button" style="margin-left: 5px;">
+					<?php esc_html_e( '+ Add', 'studio-noir-page-styles' ); ?>
+				</button>
+			</div>
 
-			<p class="description">
-				<?php esc_html_e( 'You can apply up to 2 stylesheets: one custom CSS written above, and one selected from existing styles.', 'studio-noir-page-styles' ); ?>
+			<p>
+				<strong><?php esc_html_e( 'Selected stylesheets (order = load order):', 'studio-noir-page-styles' ); ?></strong>
+			</p>
+			
+			<ul id="sn_cps_selected_list" class="sn-cps-sortable" style="list-style: none; padding: 0;">
+				<?php foreach ( $selected_styles as $style_id ) : ?>
+					<?php if ( isset( $available_styles[ $style_id ] ) ) : ?>
+						<li class="sn-cps-style-item" data-style-id="<?php echo esc_attr( $style_id ); ?>" style="background: #f6f7f7; padding: 10px; margin-bottom: 5px; border-left: 3px solid #2271b1; cursor: move;">
+							<span class="dashicons dashicons-menu" style="color: #787c82; margin-right: 8px;"></span>
+							<span class="sn-cps-style-title"><?php echo esc_html( $available_styles[ $style_id ] ); ?></span>
+							<button type="button" class="sn-cps-remove-style button-link-delete" style="float: right; color: #d63638; text-decoration: none;">
+								<?php esc_html_e( 'Remove', 'studio-noir-page-styles' ); ?>
+							</button>
+							<input type="hidden" name="sn_cps_selected[]" value="<?php echo esc_attr( $style_id ); ?>">
+						</li>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			</ul>
+			
+			<?php if ( empty( $selected_styles ) ) : ?>
+				<p class="sn-cps-empty-message" style="color: #787c82; font-style: italic;">
+					<?php esc_html_e( 'No stylesheets selected. Add styles from the dropdown above.', 'studio-noir-page-styles' ); ?>
+				</p>
+			<?php endif; ?>
+
+			<p class="description" style="margin-top: 15px;">
+				<?php esc_html_e( 'You can add multiple stylesheets. Drag and drop to reorder. Styles load in the order shown.', 'studio-noir-page-styles' ); ?>
 			</p>
 		</div>
+
+		<style>
+			.sn-cps-sortable .ui-sortable-helper {
+				opacity: 0.6;
+				box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+			}
+			.sn-cps-sortable .ui-sortable-placeholder {
+				background: #e5e5e5;
+				border: 2px dashed #2271b1;
+				visibility: visible !important;
+				height: 50px;
+				margin-bottom: 5px;
+			}
+			.sn-cps-style-item:hover {
+				background: #f0f0f1;
+			}
+		</style>
+
+		<script>
+		jQuery(document).ready(function($) {
+			// Make list sortable
+			$('#sn_cps_selected_list').sortable({
+				placeholder: 'ui-sortable-placeholder',
+				cursor: 'move',
+				opacity: 0.6
+			});
+
+			// Add style button
+			$('#sn_cps_add_style_btn').on('click', function() {
+				var $select = $('#sn_cps_available_styles');
+				var styleId = $select.val();
+				var styleTitle = $select.find('option:selected').text();
+
+				if (!styleId) {
+					return;
+				}
+
+				// Hide empty message
+				$('.sn-cps-empty-message').hide();
+
+				// Add to list
+				var $item = $('<li>', {
+					'class': 'sn-cps-style-item',
+					'data-style-id': styleId,
+					'style': 'background: #f6f7f7; padding: 10px; margin-bottom: 5px; border-left: 3px solid #2271b1; cursor: move;'
+				});
+
+				// Use DOM manipulation instead of direct HTML insertion to prevent XSS
+				$item.html(
+					'<span class="dashicons dashicons-menu" style="color: #787c82; margin-right: 8px;"></span>' +
+					'<span class="sn-cps-style-title"></span>' +
+					'<button type="button" class="sn-cps-remove-style button-link-delete" style="float: right; color: #d63638; text-decoration: none;"><?php esc_html_e( 'Remove', 'studio-noir-page-styles' ); ?></button>' +
+					'<input type="hidden" name="sn_cps_selected[]" value="">'
+				);
+				
+				// Safely set text and value using jQuery methods (auto-escaped)
+				$item.find('.sn-cps-style-title').text(styleTitle);
+				$item.find('input').val(styleId);
+
+				$('#sn_cps_selected_list').append($item);
+
+				// Remove from dropdown and reset
+				$select.find('option:selected').remove();
+				$select.val('');
+			});
+
+			// Remove style button
+			$(document).on('click', '.sn-cps-remove-style', function() {
+				var $item = $(this).closest('.sn-cps-style-item');
+				var styleId = $item.data('style-id');
+				var styleTitle = $item.find('.sn-cps-style-title').text();
+
+				// Add back to dropdown
+				$('#sn_cps_available_styles').append(
+					$('<option>', {
+						value: styleId,
+						text: styleTitle
+					})
+				);
+
+				// Remove item
+				$item.remove();
+
+				// Show empty message if no items
+				if ($('#sn_cps_selected_list li').length === 0) {
+					$('.sn-cps-empty-message').show();
+				}
+			});
+		});
+		</script>
 		<?php
 	}
 
@@ -504,21 +631,30 @@ class SN_CPS_Manager {
 			}
 		}
 
-		// Save selected stylesheet
-		if ( isset( $_POST['sn_cps_selected'] ) ) {
-			$selected_id = absint( $_POST['sn_cps_selected'] );
+		// Save selected stylesheets (now supports multiple)
+		if ( isset( $_POST['sn_cps_selected'] ) && is_array( $_POST['sn_cps_selected'] ) ) {
+			$selected_ids = array();
 
-			if ( $selected_id > 0 ) {
-				// Verify the selected post exists and has custom CSS
-				$selected_css = get_post_meta( $selected_id, self::SN_CPS_META_KEY_CSS, true );
-				if ( ! empty( $selected_css ) ) {
-					update_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED, $selected_id );
-				} else {
-					delete_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED );
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized with absint() below
+			foreach ( $_POST['sn_cps_selected'] as $selected_id ) {
+				$selected_id = absint( $selected_id );
+
+				if ( $selected_id > 0 ) {
+					// Verify the selected post exists and has custom CSS
+					$selected_css = get_post_meta( $selected_id, self::SN_CPS_META_KEY_CSS, true );
+					if ( ! empty( $selected_css ) ) {
+						$selected_ids[] = $selected_id;
+					}
 				}
+			}
+
+			if ( ! empty( $selected_ids ) ) {
+				update_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED, $selected_ids );
 			} else {
 				delete_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED );
 			}
+		} else {
+			delete_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED );
 		}
 	}
 
@@ -736,10 +872,21 @@ class SN_CPS_Manager {
 		// Enqueue current post's custom CSS
 		$this->enqueue_post_style( $post_id, $css_dir, $css_url, 'sn-cps-' );
 
-		// Enqueue selected stylesheet
-		$selected_id = absint( get_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED, true ) );
-		if ( $selected_id > 0 ) {
-			$this->enqueue_post_style( $selected_id, $css_dir, $css_url, 'sn-cps-selected-' );
+		// Enqueue selected stylesheets (now supports multiple)
+		$selected_ids = get_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED, true );
+
+		// Handle backward compatibility (convert single value to array)
+		if ( ! empty( $selected_ids ) ) {
+			if ( ! is_array( $selected_ids ) ) {
+				$selected_ids = array( $selected_ids );
+			}
+
+			foreach ( $selected_ids as $index => $selected_id ) {
+				$selected_id = absint( $selected_id );
+				if ( $selected_id > 0 ) {
+					$this->enqueue_post_style( $selected_id, $css_dir, $css_url, 'sn-cps-selected-' . $index . '-' );
+				}
+			}
 		}
 	}
 
