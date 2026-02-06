@@ -869,10 +869,7 @@ class SN_CPS_Manager {
 		$css_dir    = trailingslashit( $upload_dir['basedir'] ) . self::SN_CPS_CSS_DIR_NAME;
 		$css_url    = trailingslashit( $upload_dir['baseurl'] ) . self::SN_CPS_CSS_DIR_NAME;
 
-		// Enqueue current post's custom CSS
-		$this->enqueue_post_style( $post_id, $css_dir, $css_url, 'sn-cps-' );
-
-		// Enqueue selected stylesheets (now supports multiple)
+		// Enqueue selected stylesheets first (base styles)
 		$selected_ids = get_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED, true );
 
 		// Handle backward compatibility (convert single value to array)
@@ -888,6 +885,9 @@ class SN_CPS_Manager {
 				}
 			}
 		}
+
+		// Enqueue current post's custom CSS last (for overrides)
+		$this->enqueue_post_style( $post_id, $css_dir, $css_url, 'sn-cps-' );
 	}
 
 	/**
