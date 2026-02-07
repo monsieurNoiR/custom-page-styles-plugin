@@ -1,23 +1,25 @@
 === Studio Noir Custom Page Styles ===
 Contributors: studionoir
-Tags: css, custom css, page styles, post styles, reusable css
+Tags: css, custom css, page styles, post styles, reusable css, file upload
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Manage custom CSS for each page/post with reusability feature.
+Manage custom CSS for each page/post with unlimited style selection, file uploads, and reusability features.
 
 == Description ==
 
-Studio Noir Custom Page Styles allows you to add custom CSS to individual pages and posts, with a feature to reuse styles across multiple pages.
+Studio Noir Custom Page Styles allows you to add custom CSS to individual pages and posts, with powerful features for reusability and file management.
 
 = Key Features =
 
 * Write custom CSS directly in the page/post editor
-* **Reuse existing styles on other pages**
+* **Upload CSS and JavaScript files** (NEW in v1.1.0)
+* **Select unlimited existing styles with drag & drop reordering** (NEW in v1.1.0)
+* Choose header or footer loading for JavaScript files
 * Automatically generates CSS files for better performance
 * Choose which post types to enable
 * Secure and WordPress coding standards compliant
@@ -25,16 +27,26 @@ Studio Noir Custom Page Styles allows you to add custom CSS to individual pages 
 = Perfect For =
 
 * Adding unique designs to landing pages
-* Customizing individual blog posts
+* Customizing individual blog posts with external libraries
 * Managing page-specific styles without bloating your main stylesheet
 * Reusing common style patterns across multiple pages
+* Adding JavaScript effects and animations to specific pages
 
 = How It Works =
 
 1. Edit any page or post
 2. Find the "Custom Page Styles" meta box
-3. Write your custom CSS or select an existing style
-4. Publish and see your styles in action!
+3. Upload CSS/JS files, select existing styles, or write custom CSS
+4. Reorder styles by drag & drop to control load order
+5. Publish and see your styles in action!
+
+= Load Order =
+
+Styles are loaded in the following order for maximum flexibility:
+
+1. Selected styles (base templates)
+2. Uploaded files (libraries and frameworks)
+3. Direct CSS (final adjustments and overrides)
 
 == Installation ==
 
@@ -57,7 +69,7 @@ Studio Noir Custom Page Styles allows you to add custom CSS to individual pages 
 1. Go to Settings > Custom Page Styles
 2. Select which post types you want to enable
 3. Edit any page/post and find the "Custom Page Styles" meta box
-4. Start adding custom CSS!
+4. Start adding custom styles!
 
 == Frequently Asked Questions ==
 
@@ -67,15 +79,27 @@ Yes! Go to Settings > Custom Page Styles and select which post types you want to
 
 = Will this work with my theme? =
 
-Yes, Custom Page Styles works with any WordPress theme.
+Yes, Studio Noir Custom Page Styles works with any WordPress theme.
 
-= Can I reuse styles across multiple pages? =
+= How many styles can I apply to one page? =
 
-Yes! When editing a page, you can select an existing style from another page via the dropdown menu.
+Unlimited! You can select as many existing styles as you need, upload multiple CSS/JS files, and add custom CSS - all on the same page.
 
-= Where are the CSS files stored? =
+= Can I control the order styles are loaded? =
 
-CSS files are automatically generated and stored in `/wp-content/uploads/sn-cps-styles/`
+Yes! Use drag & drop to reorder selected styles. The order you set determines the load order.
+
+= What file types can I upload? =
+
+CSS (.css) and JavaScript (.js) files only. Maximum file size is 5MB per file.
+
+= Where should JavaScript files be loaded? =
+
+You can choose header or footer for each JS file. Footer is recommended for most cases (default).
+
+= Where are the uploaded files stored? =
+
+Uploaded files are stored in `/wp-content/uploads/sn-cps-styles/{post_id}/` to keep files organized by post.
 
 = Does this affect site performance? =
 
@@ -93,11 +117,33 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 
 == Screenshots ==
 
-1. Custom Page Styles meta box in the post editor
-2. Settings page to choose enabled post types
-3. Selecting an existing style to reuse
+1. Custom Page Styles meta box with file upload interface
+2. Drag & drop reordering of selected styles
+3. Settings page to choose enabled post types
 
 == Changelog ==
+
+= 1.1.0 =
+* NEW: Unlimited style selection (previously limited to 2)
+* NEW: Drag & drop reordering for selected styles (ACF-style sortable UI)
+* NEW: File upload feature for CSS and JavaScript files
+* NEW: Choose header or footer loading for JavaScript files
+* NEW: Files organized in post-specific directories
+* IMPROVED: CSS load order optimization (selected → uploaded → direct CSS)
+* IMPROVED: Security enhancements for file uploads (type validation, size limit)
+* IMPROVED: Better UI with visual feedback and file management
+
+= 1.0.2 =
+* IMPROVED: Style loading priority optimization
+* Set `wp_enqueue_scripts` hook priority to 20
+* Custom CSS now reliably overrides theme styles
+
+= 1.0.1 =
+* SECURITY: Enhanced CSS sanitization (WP_Error support)
+* SECURITY: Additional dangerous pattern detection
+* SECURITY: File size limit added (1MB for CSS)
+* IMPROVED: Better error handling with Transient API
+* IMPROVED: Path traversal attack prevention
 
 = 1.0.0 =
 * Initial release
@@ -110,6 +156,15 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 * Security: File path validation
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Major update! Unlimited style selection with drag & drop, file upload support for CSS/JS, and improved load order control. Fully backward compatible with v1.0.x.
+
+= 1.0.2 =
+Improved style loading priority for better theme override capability.
+
+= 1.0.1 =
+Important security update with enhanced CSS sanitization and file validation.
 
 = 1.0.0 =
 Initial release of Studio Noir Custom Page Styles.

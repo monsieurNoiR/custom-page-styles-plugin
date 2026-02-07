@@ -1,14 +1,15 @@
-# Custom Page Styles Manager
+# Studio Noir Custom Page Styles
 
-ページ固有のカスタムスタイルシート管理機能を提供するWordPressプラグインです。各ページにカスタムCSSを記述し、過去のスタイルシートを再利用できます。
+ページ固有のカスタムスタイルシート管理機能を提供するWordPressプラグインです。各ページにカスタムCSSを記述し、過去のスタイルシートを再利用できます。v1.1.0では無制限のスタイル選択とファイルアップロード機能を追加しました。
 
 ## 概要
 
 このプラグインは、WordPressの各ページに個別のカスタムCSSを適用できる機能を提供します。以下の特徴があります。
 
 - ページごとに独自のCSSを記述・保存
-- 過去に作成したスタイルシートを他のページで再利用
-- 適用するスタイルシートは最大2つまで（新規作成1つ + 既存選択1つ）
+- CSS/JavaScriptファイルのアップロード対応
+- 過去に作成したスタイルシートを無制限に再利用
+- ドラッグ&ドロップで読み込み順序を自由に変更
 - 機能を有効化する投稿タイプを選択可能
 - セキュアなファイル管理とデータ検証
 
@@ -17,20 +18,33 @@
 ### 1. カスタムCSSの記述と保存
 - 投稿編集画面に専用のメタボックスを追加
 - テキストエリアで直接CSSコードを記述
-- 保存時に自動的にCSSファイルを生成（`wp-content/uploads/custom-page-styles/post-styles-{投稿ID}.css`）
+- 保存時に自動的にCSSファイルを生成（`wp-content/uploads/sn-cps-styles/post-styles-{投稿ID}.css`）
 - データベースにもカスタムフィールドとして保存
 
-### 2. 既存スタイルシートの再利用
-- 他のページで作成したスタイルシートをセレクトボックスから選択
+### 2. ファイルアップロード機能（v1.1.0）
+- **CSS/JavaScriptファイルのアップロード対応**
+- 投稿ごとに専用ディレクトリで管理（`/sn-cps-styles/{投稿ID}/`）
+- 元のファイル名を保持
+- ファイルタイプ検証（CSS/JSのみ）
+- ファイルサイズ制限（5MB）
+- **JavaScript読み込み位置選択** (header/footer)
+
+### 3. 無制限スタイル選択（v1.1.0）
+- 他のページで作成したスタイルシートを無制限に選択可能
+- **ドラッグ&ドロップで読み込み順序を変更**
 - 「投稿タイトル (ID: XXX, 投稿タイプ)」形式で表示
-- 最大1つまで選択可能
+- ACF風のソート可能UIを実装
 
-### 3. スタイルシート適用ルール
-1つのページに適用できるスタイルシートは以下の2種類まで:
-- **新規作成**: 現在のページで新しく記述したCSS（1つ）
-- **既存選択**: 過去に作成されたスタイルシートから選択（1つ、オプション）
+### 4. 最適化された読み込み順序（v1.1.0）
+スタイルは以下の順序で読み込まれます:
 
-### 4. 投稿タイプ選択
+1. **選択スタイル** - ベーステンプレート、再利用パーツ
+2. **アップロードファイル** - ライブラリ、フレームワーク
+3. **直接記述CSS** - 最終調整、上書き
+
+この順序により、ライブラリを最初に読み込み、最後に細かい調整を加えることができます。
+
+### 5. 投稿タイプ選択
 - 管理画面の「設定 > Custom Page Styles」から設定
 - チェックボックスで機能を有効化する投稿タイプを複数選択可能
 - デフォルトでは「投稿」と「固定ページ」が有効
@@ -58,20 +72,26 @@
    - 機能を有効化したい投稿タイプにチェックを入れる
    - 「設定を保存」をクリック
 
-2. **カスタムCSSの記述**
+2. **ファイルのアップロード（v1.1.0）**
    - 投稿編集画面を開く
-   - 「Custom Page Styles」メタボックスを探す
-   - 「Custom CSS for this page:」のテキストエリアにCSSを記述
-   - 投稿を保存または更新
+   - 「Upload CSS/JS Files」セクションで「Choose File」をクリック
+   - CSS または JS ファイルを選択
+   - 「Add File」をクリック
+   - JSファイルの場合、header/footerを選択可能
 
 3. **既存スタイルシートの選択**
-   - 同じメタボックス内の「Or select an existing stylesheet:」セレクトボックスから選択
-   - 過去に作成したスタイルシートが一覧表示されます
-   - 1つまで選択可能
+   - 「Add existing stylesheets」セクションのドロップダウンから選択
+   - 「+ Add」をクリック
+   - 追加したスタイルをドラッグ&ドロップで並び替え
+   - 不要なスタイルは「Remove」で削除
 
-4. **フロントエンドでの確認**
-   - 投稿を表示すると、記述したCSSが自動的に適用されます
-   - ブラウザの開発者ツールで `<link>` タグを確認できます
+4. **カスタムCSSの記述**
+   - 「Custom CSS for this page」のテキストエリアにCSSを記述
+   - 投稿を保存または更新
+
+5. **フロントエンドでの確認**
+   - 投稿を表示すると、すべてのスタイルが自動的に適用されます
+   - ブラウザの開発者ツールで `<link>` / `<script>` タグを確認できます
 
 ### CSS記述例
 
@@ -102,7 +122,7 @@ body {
 このプラグインは以下のセキュリティ対策を実装しています。
 
 ### 1. Nonce検証
-- すべてのフォーム送信でWordPress Nonceを使用
+- すべてのフォーム送信とAJAXリクエストでWordPress Nonceを使用
 - CSRF攻撃を防止
 
 ### 2. 権限チェック
@@ -111,6 +131,7 @@ body {
 
 ### 3. データサニタイゼーション
 - `wp_strip_all_tags()` でHTMLタグを除去
+- ファイル名の `sanitize_file_name()` 処理
 - 危険なCSSプロパティを自動削除:
   - `@import`（外部ファイル読み込み）
   - `javascript:`（XSS攻撃）
@@ -118,108 +139,100 @@ body {
   - `behavior`、`-moz-binding`（バインディング攻撃）
 - 基本的なCSS構文検証（括弧のバランスチェック）
 
-### 4. XSS対策
+### 4. ファイルアップロードセキュリティ（v1.1.0）
+- **ファイルタイプ検証**: CSS/JSファイルのみ許可
+- **ファイルサイズ制限**: 5MB以内
+- **ファイル名サニタイゼーション**: パストラバーサル対策
+- **投稿別ディレクトリ分離**: `/sn-cps-styles/{post_id}/`
+
+### 5. XSS対策
 - 出力時に `esc_html()`, `esc_attr()`, `esc_textarea()` を使用
 - すべてのユーザー入力をエスケープ処理
+- JavaScriptでのDOM操作に `.text()` / `.val()` 使用（自動エスケープ）
 
-### 5. SQLインジェクション対策
+### 6. SQLインジェクション対策
 - `$wpdb->prepare()` でパラメータをバインド
 - プレースホルダーを使用した安全なクエリ実行
 
-### 6. 安全なファイル操作
+### 7. 安全なファイル操作
 - WordPress Filesystem API (`WP_Filesystem`) を使用
 - 直接的な `file_put_contents()` は使用しない
 - CSSファイル保存ディレクトリに `index.php` と `.htaccess` を自動配置
 - パストラバーサル攻撃対策（`realpath()` による検証）
 - ファイルパスの厳格な検証
 
-### 7. 追加のセキュリティ機能
-- POSTデータの`wp_unslash()`処理
-- すべての投稿IDを`absint()`で検証
-- ファイル操作前のディレクトリ検証
-- `.htaccess`によるPHP実行防止
-
 ## ファイル構成
 
 ```
-custom-page-styles-plugin/
-├── custom-page-styles.php    # メインプラグインファイル
-├── uninstall.php             # アンインストール時のクリーンアップ
-└── README.md                 # このファイル
+custom-page-styles-project/
+├── studio-noir-page-styles/      # プラグイン本体
+│   ├── custom-page-styles.php    # メインプラグインファイル
+│   ├── uninstall.php             # アンインストール時のクリーンアップ
+│   ├── README.md                 # このファイル
+│   ├── readme.txt                # WordPress.org用README
+│   └── languages/                # 翻訳ファイル
+├── custom-page-styles.zip        # 配布用zipファイル
+└── wordpress-org-svn/            # WordPress.org SVN用
 ```
 
-### 生成されるファイル
+### 生成されるファイル（v1.1.0）
 
 プラグインが自動的に以下のファイルを生成します。
 
 ```
 wp-content/uploads/
-└── custom-page-styles/
+└── sn-cps-styles/
     ├── index.php                    # セキュリティ用（ディレクトリリスティング防止）
     ├── .htaccess                    # PHP実行防止
-    ├── post-styles-123.css          # 投稿ID 123のスタイル
-    ├── post-styles-456.css          # 投稿ID 456のスタイル
-    └── ...
+    ├── post-styles-123.css          # 投稿ID 123の自動生成CSS
+    ├── 123/                         # 投稿ID 123用アップロードファイル
+    │   ├── animation.js
+    │   ├── custom-library.css
+    │   └── effects.js
+    ├── post-styles-456.css          # 投稿ID 456の自動生成CSS
+    └── 456/                         # 投稿ID 456用アップロードファイル
+        └── special-style.css
 ```
 
 ## データベース構造
 
 ### カスタムフィールド（Post Meta）
 
-| メタキー | 説明 | データ型 |
-|---------|------|---------|
-| `_custom_page_styles_css` | カスタムCSS内容 | string (text) |
-| `_custom_page_styles_selected` | 選択された既存スタイルシートのID | int |
+| メタキー | 説明 | データ型 | バージョン |
+|---------|------|---------|-----------|
+| `_sn_cps_css` | カスタムCSS内容 | string (text) | v1.0.0+ |
+| `_sn_cps_selected` | 選択されたスタイルシートID配列 | array | v1.0.0+ (v1.1.0で配列化) |
+| `_sn_cps_uploaded_files` | アップロードファイル情報配列 | array | v1.1.0+ |
+
+#### `_sn_cps_uploaded_files` 構造例（v1.1.0）
+
+```php
+array(
+    array(
+        'filename' => 'animation.js',
+        'type' => 'js',
+        'load_in' => 'footer'
+    ),
+    array(
+        'filename' => 'custom-style.css',
+        'type' => 'css',
+        'load_in' => 'header'
+    )
+)
+```
 
 ### オプション
 
 | オプション名 | 説明 | データ型 |
 |------------|------|---------|
-| `custom_page_styles_enabled_post_types` | 有効な投稿タイプ配列 | array |
-
-## 制限事項と注意点
-
-### 制限事項
-
-1. **スタイルシート数の制限**
-   - 1ページあたり最大2つまで（新規1つ + 既存選択1つ）
-
-2. **CSS検証**
-   - 基本的な構文チェックのみ実施
-   - CSS Lintのような高度な検証は行いません
-
-3. **対象ページ**
-   - シングルページ（`is_singular()`）でのみ適用
-   - アーカイブページや検索結果ページでは適用されません
-
-### 注意点
-
-1. **パフォーマンス**
-   - 多数のページでカスタムCSSを使用すると、CSSファイル数が増加します
-   - 定期的に不要なスタイルシートを削除することを推奨
-
-2. **CSS記述**
-   - セレクタの詳細度に注意してください
-   - テーマやプラグインのCSSと競合する可能性があります
-   - `!important` の多用は避けることを推奨
-
-3. **バックアップ**
-   - プラグイン削除前に重要なCSSをバックアップしてください
-   - CSSファイルは `wp-content/uploads/custom-page-styles/` に保存されています
-
-4. **キャッシュ**
-   - キャッシュプラグイン使用時は、CSS変更後にキャッシュをクリアしてください
-
-5. **権限**
-   - `wp-content/uploads/` ディレクトリへの書き込み権限が必要です
-   - サーバー設定で権限が制限されている場合、CSSファイル生成が失敗する可能性があります
+| `sn_cps_enabled_post_types` | 有効な投稿タイプ配列 | array |
 
 ## トラブルシューティング
 
 ### CSSが適用されない
 
 1. **ファイルの確認**
-   - `wp-content/uploads/custom-page-styles/` ディレクトリが存在するか確認
+   - `wp-content/uploads/sn-cps-styles/` ディレクトリが存在するか確認
    - 該当するCSSファイルが生成されているか確認
 
 2. **権限の確認**
@@ -233,19 +246,18 @@ wp-content/uploads/
 4. **投稿タイプの確認**
    - 「設定 > Custom Page Styles」で該当の投稿タイプが有効化されているか確認
 
-### エラーメッセージが表示される
+### アップロードファイルが読み込まれない（v1.1.0）
 
-1. **CSS validation error: Unbalanced braces detected**
-   - CSS内の `{` と `}` の数が一致していません
-   - CSSコードを確認し、括弧を修正してください
+1. **ファイルの存在確認**
+   - `/sn-cps-styles/{投稿ID}/` ディレクトリにファイルが存在するか確認
 
-2. **Failed to create CSS directory**
-   - uploadsディレクトリへの書き込み権限がありません
-   - サーバー管理者に権限設定を確認してください
+2. **ファイルタイプ確認**
+   - CSS/JSファイルのみサポート
+   - 拡張子が正しいか確認
 
-3. **Failed to write CSS file**
-   - ファイル書き込みに失敗しました
-   - ディスク容量とファイル権限を確認してください
+3. **読み込み位置確認**
+   - JSファイルの場合、header/footerの設定を確認
+   - ブラウザの開発者ツールでscriptタグを確認
 
 ## 開発者向け情報
 
@@ -260,42 +272,21 @@ wp-content/uploads/
 - `add_meta_boxes` - メタボックス追加
 - `save_post` - メタデータ保存
 - `wp_enqueue_scripts` - フロントエンドでスタイル読み込み
+- `admin_enqueue_scripts` - 管理画面でjQuery UI Sortableエンキュー（v1.1.0）
+- `wp_ajax_sn_cps_upload_file` - ファイルアップロードAJAXハンドラー（v1.1.0）
+- `wp_ajax_sn_cps_remove_file` - ファイル削除AJAXハンドラー（v1.1.0）
 
 ### 定数
 
 プラグイン内で使用される主要な定数:
 
 ```php
-Custom_Page_Styles_Manager::VERSION                    // プラグインバージョン
-Custom_Page_Styles_Manager::META_KEY_CSS              // CSSメタキー
-Custom_Page_Styles_Manager::META_KEY_SELECTED         // 選択スタイルシートメタキー
-Custom_Page_Styles_Manager::OPTION_ENABLED_POST_TYPES // 有効投稿タイプオプション
-Custom_Page_Styles_Manager::CSS_DIR_NAME              // CSSディレクトリ名
-```
-
-### カスタマイズ例
-
-#### 生成されるCSSファイル名を変更
-
-`generate_css_file()` メソッド内の以下の行を変更:
-
-```php
-$css_file = trailingslashit( $css_dir ) . 'custom-styles-' . $post_id . '.css';
-```
-
-#### 追加のCSS検証ルールを追加
-
-`sanitize_css()` メソッド内の `$dangerous_patterns` 配列に追加:
-
-```php
-$dangerous_patterns = array(
-    '/@import/i',
-    '/javascript:/i',
-    '/expression\s*\(/i',
-    '/behavior\s*:/i',
-    '/-moz-binding/i',
-    '/your-custom-pattern/i', // 追加
-);
+SN_CPS_Manager::VERSION                    // プラグインバージョン
+SN_CPS_Manager::SN_CPS_META_KEY_CSS              // CSSメタキー
+SN_CPS_Manager::SN_CPS_META_KEY_SELECTED         // 選択スタイルシートメタキー
+SN_CPS_Manager::SN_CPS_META_KEY_UPLOADED         // アップロードファイルメタキー (v1.1.0)
+SN_CPS_Manager::SN_CPS_OPTION_ENABLED_POST_TYPES // 有効投稿タイプオプション
+SN_CPS_Manager::SN_CPS_CSS_DIR_NAME              // CSSディレクトリ名
 ```
 
 ## アンインストール
@@ -306,24 +297,49 @@ $dangerous_patterns = array(
 2. 「削除」をクリック
 
 プラグインは `uninstall.php` を使用して、以下を**自動的にクリーンアップ**します:
-- すべてのカスタムフィールド（`_custom_page_styles_css`, `_custom_page_styles_selected`）
-- プラグインオプション（`custom_page_styles_enabled_post_types`）
-- `wp-content/uploads/custom-page-styles/` ディレクトリとその中のすべてのファイル
+- すべてのカスタムフィールド（`_sn_cps_css`, `_sn_cps_selected`, `_sn_cps_uploaded_files`）
+- プラグインオプション（`sn_cps_enabled_post_types`）
+- `wp-content/uploads/sn-cps-styles/` ディレクトリとその中のすべてのファイル
 
-**注意**: アンインストール後、すべてのカスタムCSSデータが完全に削除されます。重要なCSSは事前にバックアップしてください。
+**注意**: アンインストール後、すべてのカスタムCSSデータとアップロードファイルが完全に削除されます。重要なファイルは事前にバックアップしてください。
 
 ## サポート
 
 このプラグインに関する質問や問題がある場合:
 
-- GitHubのIssuesページで報告
-- WordPress.orgサポートフォーラムで質問
+- [GitHubのIssuesページ](https://github.com/monsieurNoiR/custom-page-styles-plugin)で報告
+- [WordPress.orgサポートフォーラム](https://wordpress.org/support/plugin/studio-noir-page-styles/)で質問
 
 ## ライセンス
 
 GPL v2 or later
 
 ## 変更履歴
+
+### 1.1.0 (2025-02-XX)
+- **新機能: 無制限スタイル選択**
+  - 以前は最大2つまでだった制限を撤廃
+  - ドラッグ&ドロップで読み込み順序を変更可能
+  - ACF風のソート可能UIを実装
+  - jQuery UI Sortableを使用
+
+- **新機能: ファイルアップロード**
+  - CSS/JavaScriptファイルのアップロード対応
+  - 投稿ごとに専用ディレクトリ管理（`/sn-cps-styles/{post_id}/`）
+  - 元のファイル名を保持
+  - ファイルタイプ検証（CSS/JSのみ）
+  - ファイルサイズ制限（5MB）
+  - JavaScript読み込み位置選択（header/footer）
+  - AJAXによるファイル追加・削除
+
+- **改善: CSS読み込み順序の最適化**
+  - 選択スタイル → アップロードファイル → 直接記述CSS の順で読み込み
+  - より柔軟なカスタマイズが可能に
+
+- **セキュリティ強化**
+  - ファイルアップロードのセキュリティ検証
+  - XSS対策の強化（JavaScriptでのDOM操作）
+  - ファイル名サニタイゼーション
 
 ### 1.0.2 (2024-12-18)
 - **スタイル読み込み優先度の最適化**
@@ -347,4 +363,4 @@ GPL v2 or later
 
 ## クレジット
 
-開発: Claude Code
+開発: Masaki (studioNoiR) with Claude Code
