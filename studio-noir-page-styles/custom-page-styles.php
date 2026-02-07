@@ -48,6 +48,13 @@ class SN_CPS_Manager {
 	const SN_CPS_META_KEY_SELECTED = '_sn_cps_selected';
 
 	/**
+	 * Meta key for uploaded files
+	 *
+	 * @var string
+	 */
+	const SN_CPS_META_KEY_UPLOADED = '_sn_cps_uploaded_files';
+
+	/**
 	 * Option key for enabled post types
 	 *
 	 * @var string
@@ -96,6 +103,10 @@ class SN_CPS_Manager {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
 		add_action( 'save_post', array( $this, 'save_meta_box' ), 10, 2 );
+
+		// AJAX hooks
+		add_action( 'wp_ajax_sn_cps_upload_file', array( $this, 'ajax_upload_file' ) );
+		add_action( 'wp_ajax_sn_cps_remove_file', array( $this, 'ajax_remove_file' ) );
 
 		// Frontend hooks
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_custom_styles' ), 20 );
@@ -364,17 +375,90 @@ class SN_CPS_Manager {
 		// Get current values
 		$custom_css       = get_post_meta( $post->ID, self::SN_CPS_META_KEY_CSS, true );
 		$selected_styles  = get_post_meta( $post->ID, self::SN_CPS_META_KEY_SELECTED, true );
+		$uploaded_files   = get_post_meta( $post->ID, self::SN_CPS_META_KEY_UPLOADED, true );
 		
-		// Ensure it's an array (backward compatibility)
+		// Ensure arrays (backward compatibility)
 		if ( ! is_array( $selected_styles ) ) {
 			$selected_styles = ! empty( $selected_styles ) ? array( $selected_styles ) : array();
+		}
+		if ( ! is_array( $uploaded_files ) ) {
+			$uploaded_files = array();
 		}
 
 		// Get all posts with custom styles
 		$available_styles = $this->get_available_styles( $post->ID );
 
+		// Get upload directory info
+		$upload_dir = wp_upload_dir();
+		$post_upload_dir = trailingslashit( $upload_dir['basedir'] ) . self::SN_CPS_CSS_DIR_NAME . '/' . $post->ID;
+		$post_upload_url = trailingslashit( $upload_dir['baseurl'] ) . self::SN_CPS_CSS_DIR_NAME . '/' . $post->ID;
+
 		?>
 		<div class="sn-cps-meta-box">
+			<!-- File Upload Section -->
+			<p>
+				<strong><?php esc_html_e( 'Upload CSS/JS Files:', 'studio-noir-page-styles' ); ?></strong>
+			</p>
+			
+			<div class="sn-cps-file-upload" style="margin-bottom: 20px;">
+				<input type="file" id="sn_cps_file_input" accept=".css,.js" style="display: none;">
+				<button type="button" id="sn_cps_upload_btn" class="button">
+					<?php esc_html_e( 'Choose File', 'studio-noir-page-styles' ); ?>
+				</button>
+				<span id="sn_cps_file_name" style="margin-left: 10px; color: #666;"></span>
+				<button type="button" id="sn_cps_add_file_btn" class="button button-primary" style="margin-left: 10px;" disabled>
+					<?php esc_html_e( 'Add File', 'studio-noir-page-styles' ); ?>
+				</button>
+			</div>
+
+			<?php if ( ! empty( $uploaded_files ) ) : ?>
+				<p>
+					<strong><?php esc_html_e( 'Uploaded Files:', 'studio-noir-page-styles' ); ?></strong>
+				</p>
+				<ul id="sn_cps_uploaded_list" style="list-style: none; padding: 0;">
+					<?php foreach ( $uploaded_files as $index => $file_info ) : ?>
+						<?php
+						$file_path = trailingslashit( $post_upload_dir ) . $file_info['filename'];
+						if ( ! file_exists( $file_path ) ) {
+							continue;
+						}
+						?>
+						<li class="sn-cps-file-item" style="background: #f6f7f7; padding: 10px; margin-bottom: 5px; border-left: 3px solid <?php echo 'js' === $file_info['type'] ? '#f0ad4e' : '#5bc0de'; ?>;">
+							<span class="dashicons dashicons-media-<?php echo 'js' === $file_info['type'] ? 'code' : 'document'; ?>" style="color: #787c82; margin-right: 8px;"></span>
+							<span class="sn-cps-file-name"><?php echo esc_html( $file_info['filename'] ); ?></span>
+							<span style="margin-left: 10px; color: #666; font-size: 12px;">
+								(<?php echo esc_html( strtoupper( $file_info['type'] ) ); ?>
+								<?php if ( 'js' === $file_info['type'] ) : ?>
+									- <?php echo esc_html( ucfirst( $file_info['load_in'] ) ); ?>
+								<?php endif; ?>)
+							</span>
+							<?php if ( 'js' === $file_info['type'] ) : ?>
+								<select name="sn_cps_uploaded_files[<?php echo esc_attr( $index ); ?>][load_in]" style="margin-left: 10px;">
+									<option value="header" <?php selected( $file_info['load_in'], 'header' ); ?>>Header</option>
+									<option value="footer" <?php selected( $file_info['load_in'], 'footer' ); ?>>Footer</option>
+								</select>
+							<?php endif; ?>
+							<button type="button" class="sn-cps-remove-file button-link-delete" data-index="<?php echo esc_attr( $index ); ?>" style="float: right; color: #d63638; text-decoration: none;">
+								<?php esc_html_e( 'Remove', 'studio-noir-page-styles' ); ?>
+							</button>
+							<input type="hidden" name="sn_cps_uploaded_files[<?php echo esc_attr( $index ); ?>][filename]" value="<?php echo esc_attr( $file_info['filename'] ); ?>">
+							<input type="hidden" name="sn_cps_uploaded_files[<?php echo esc_attr( $index ); ?>][type]" value="<?php echo esc_attr( $file_info['type'] ); ?>">
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php else : ?>
+				<p class="sn-cps-no-files" style="color: #787c82; font-style: italic;">
+					<?php esc_html_e( 'No files uploaded.', 'studio-noir-page-styles' ); ?>
+				</p>
+			<?php endif; ?>
+
+			<p class="description">
+				<?php esc_html_e( 'Upload CSS or JavaScript files. JS files can be loaded in header or footer.', 'studio-noir-page-styles' ); ?>
+			</p>
+
+			<hr style="margin: 20px 0;">
+
+			<!-- Custom CSS Section -->
 			<p>
 				<label for="sn_cps_css">
 					<strong><?php esc_html_e( 'Custom CSS for this page:', 'studio-noir-page-styles' ); ?></strong>
@@ -461,6 +545,88 @@ class SN_CPS_Manager {
 
 		<script>
 		jQuery(document).ready(function($) {
+			// File upload functionality
+			var selectedFile = null;
+
+			$('#sn_cps_upload_btn').on('click', function() {
+				$('#sn_cps_file_input').click();
+			});
+
+			$('#sn_cps_file_input').on('change', function(e) {
+				var file = e.target.files[0];
+				if (file) {
+					var ext = file.name.split('.').pop().toLowerCase();
+					if (ext === 'css' || ext === 'js') {
+						selectedFile = file;
+						$('#sn_cps_file_name').text(file.name);
+						$('#sn_cps_add_file_btn').prop('disabled', false);
+					} else {
+						alert('<?php esc_html_e( 'Please select a CSS or JS file.', 'studio-noir-page-styles' ); ?>');
+						selectedFile = null;
+						$('#sn_cps_file_name').text('');
+						$('#sn_cps_add_file_btn').prop('disabled', true);
+					}
+				}
+			});
+
+			$('#sn_cps_add_file_btn').on('click', function() {
+				if (!selectedFile) {
+					return;
+				}
+
+				var formData = new FormData();
+				formData.append('action', 'sn_cps_upload_file');
+				formData.append('post_id', <?php echo absint( $post->ID ); ?>);
+				formData.append('file', selectedFile);
+				formData.append('nonce', '<?php echo esc_js( wp_create_nonce( 'sn_cps_upload_file' ) ); ?>');
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function(response) {
+						if (response.success) {
+							location.reload();
+						} else {
+							alert(response.data || '<?php esc_html_e( 'Upload failed.', 'studio-noir-page-styles' ); ?>');
+						}
+					},
+					error: function() {
+						alert('<?php esc_html_e( 'Upload failed.', 'studio-noir-page-styles' ); ?>');
+					}
+				});
+			});
+
+			// Remove uploaded file
+			$(document).on('click', '.sn-cps-remove-file', function() {
+				var $item = $(this).closest('.sn-cps-file-item');
+				var filename = $item.find('.sn-cps-file-name').text();
+				
+				if (!confirm('<?php esc_html_e( 'Remove this file?', 'studio-noir-page-styles' ); ?>')) {
+					return;
+				}
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'sn_cps_remove_file',
+						post_id: <?php echo absint( $post->ID ); ?>,
+						filename: filename,
+						nonce: '<?php echo esc_js( wp_create_nonce( 'sn_cps_remove_file' ) ); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							location.reload();
+						} else {
+							alert(response.data || '<?php esc_html_e( 'Remove failed.', 'studio-noir-page-styles' ); ?>');
+						}
+					}
+				});
+			});
+
 			// Make list sortable
 			$('#sn_cps_selected_list').sortable({
 				placeholder: 'ui-sortable-placeholder',
@@ -655,6 +821,26 @@ class SN_CPS_Manager {
 			}
 		} else {
 			delete_post_meta( $post_id, self::SN_CPS_META_KEY_SELECTED );
+		}
+
+		// Save uploaded files settings (load_in for JS files)
+		if ( isset( $_POST['sn_cps_uploaded_files'] ) && is_array( $_POST['sn_cps_uploaded_files'] ) ) {
+			$uploaded_files = array();
+
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized below
+			foreach ( $_POST['sn_cps_uploaded_files'] as $file_data ) {
+				if ( isset( $file_data['filename'] ) && isset( $file_data['type'] ) ) {
+					$uploaded_files[] = array(
+						'filename' => sanitize_file_name( wp_unslash( $file_data['filename'] ) ),
+						'type'     => in_array( $file_data['type'], array( 'css', 'js' ), true ) ? $file_data['type'] : 'css',
+						'load_in'  => isset( $file_data['load_in'] ) && 'header' === $file_data['load_in'] ? 'header' : 'footer',
+					);
+				}
+			}
+
+			if ( ! empty( $uploaded_files ) ) {
+				update_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, $uploaded_files );
+			}
 		}
 	}
 
@@ -886,6 +1072,44 @@ class SN_CPS_Manager {
 			}
 		}
 
+		// Enqueue uploaded files (libraries)
+		$uploaded_files = get_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, true );
+		if ( is_array( $uploaded_files ) && ! empty( $uploaded_files ) ) {
+			$post_upload_dir = trailingslashit( $css_dir ) . $post_id;
+			$post_upload_url = trailingslashit( $css_url ) . $post_id;
+
+			foreach ( $uploaded_files as $index => $file_info ) {
+				// Sanitize filename to prevent path traversal
+				$safe_filename = sanitize_file_name( $file_info['filename'] );
+				$file_path = trailingslashit( $post_upload_dir ) . $safe_filename;
+				$file_url  = trailingslashit( $post_upload_url ) . $safe_filename;
+
+				if ( ! file_exists( $file_path ) ) {
+					continue;
+				}
+
+				$handle = 'sn-cps-uploaded-' . $index . '-' . $post_id;
+
+				if ( 'css' === $file_info['type'] ) {
+					wp_enqueue_style(
+						$handle,
+						$file_url,
+						array(),
+						filemtime( $file_path )
+					);
+				} elseif ( 'js' === $file_info['type'] ) {
+					$in_footer = isset( $file_info['load_in'] ) && 'footer' === $file_info['load_in'];
+					wp_enqueue_script(
+						$handle,
+						$file_url,
+						array(),
+						filemtime( $file_path ),
+						$in_footer
+					);
+				}
+			}
+		}
+
 		// Enqueue current post's custom CSS last (for overrides)
 		$this->enqueue_post_style( $post_id, $css_dir, $css_url, 'sn-cps-' );
 	}
@@ -928,6 +1152,136 @@ class SN_CPS_Manager {
 			array(),
 			filemtime( $css_file )
 		);
+	}
+
+	/**
+	 * AJAX handler for file upload
+	 */
+	public function ajax_upload_file() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'sn_cps_upload_file' ) ) {
+			wp_send_json_error( __( 'Invalid nonce', 'studio-noir-page-styles' ) );
+		}
+
+		// Check post ID
+		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+		if ( $post_id <= 0 ) {
+			wp_send_json_error( __( 'Invalid post ID', 'studio-noir-page-styles' ) );
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( __( 'Permission denied', 'studio-noir-page-styles' ) );
+		}
+
+		// Check file upload
+		if ( ! isset( $_FILES['file'] ) ) {
+			wp_send_json_error( __( 'No file uploaded', 'studio-noir-page-styles' ) );
+		}
+
+		$file = $_FILES['file'];
+
+		// Validate file type
+		$filename = sanitize_file_name( $file['name'] );
+		$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+
+		if ( ! in_array( $ext, array( 'css', 'js' ), true ) ) {
+			wp_send_json_error( __( 'Only CSS and JS files are allowed', 'studio-noir-page-styles' ) );
+		}
+
+		// Validate file size (5MB max)
+		if ( $file['size'] > 5242880 ) {
+			wp_send_json_error( __( 'File size must be less than 5MB', 'studio-noir-page-styles' ) );
+		}
+
+		// Create upload directory
+		$upload_dir = wp_upload_dir();
+		$post_upload_dir = trailingslashit( $upload_dir['basedir'] ) . self::SN_CPS_CSS_DIR_NAME . '/' . $post_id;
+
+		if ( ! file_exists( $post_upload_dir ) ) {
+			if ( ! wp_mkdir_p( $post_upload_dir ) ) {
+				wp_send_json_error( __( 'Failed to create upload directory', 'studio-noir-page-styles' ) );
+			}
+		}
+
+		// Move uploaded file
+		$target_file = trailingslashit( $post_upload_dir ) . $filename;
+
+		if ( ! move_uploaded_file( $file['tmp_name'], $target_file ) ) {
+			wp_send_json_error( __( 'Failed to save file', 'studio-noir-page-styles' ) );
+		}
+
+		// Update meta
+		$uploaded_files = get_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, true );
+		if ( ! is_array( $uploaded_files ) ) {
+			$uploaded_files = array();
+		}
+
+		$uploaded_files[] = array(
+			'filename' => $filename,
+			'type' => $ext,
+			'load_in' => 'js' === $ext ? 'footer' : 'header',
+		);
+
+		update_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, $uploaded_files );
+
+		wp_send_json_success( __( 'File uploaded successfully', 'studio-noir-page-styles' ) );
+	}
+
+	/**
+	 * AJAX handler for file removal
+	 */
+	public function ajax_remove_file() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'sn_cps_remove_file' ) ) {
+			wp_send_json_error( __( 'Invalid nonce', 'studio-noir-page-styles' ) );
+		}
+
+		// Check post ID
+		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+		if ( $post_id <= 0 ) {
+			wp_send_json_error( __( 'Invalid post ID', 'studio-noir-page-styles' ) );
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( __( 'Permission denied', 'studio-noir-page-styles' ) );
+		}
+
+		// Get filename
+		$filename = isset( $_POST['filename'] ) ? sanitize_file_name( wp_unslash( $_POST['filename'] ) ) : '';
+		if ( empty( $filename ) ) {
+			wp_send_json_error( __( 'Invalid filename', 'studio-noir-page-styles' ) );
+		}
+
+		// Delete file
+		$upload_dir = wp_upload_dir();
+		$post_upload_dir = trailingslashit( $upload_dir['basedir'] ) . self::SN_CPS_CSS_DIR_NAME . '/' . $post_id;
+		$file_path = trailingslashit( $post_upload_dir ) . $filename;
+
+		if ( file_exists( $file_path ) ) {
+			$filesystem = $this->get_filesystem();
+			if ( $filesystem ) {
+				$filesystem->delete( $file_path );
+			}
+		}
+
+		// Update meta
+		$uploaded_files = get_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, true );
+		if ( is_array( $uploaded_files ) ) {
+			$uploaded_files = array_filter( $uploaded_files, function( $file ) use ( $filename ) {
+				return $file['filename'] !== $filename;
+			});
+			$uploaded_files = array_values( $uploaded_files ); // Re-index
+
+			if ( empty( $uploaded_files ) ) {
+				delete_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED );
+			} else {
+				update_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, $uploaded_files );
+			}
+		}
+
+		wp_send_json_success( __( 'File removed successfully', 'studio-noir-page-styles' ) );
 	}
 }
 
