@@ -4,7 +4,7 @@ Tags: css, custom css, page styles, post styles, reusable css, file upload
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,8 +17,8 @@ Studio Noir Custom Page Styles allows you to add custom CSS to individual pages 
 = Key Features =
 
 * Write custom CSS directly in the page/post editor
-* **Upload CSS and JavaScript files** (NEW in v1.1.0)
-* **Select unlimited existing styles with drag & drop reordering** (NEW in v1.1.0)
+* **Upload CSS and JavaScript files**
+* **Select unlimited existing styles with drag & drop reordering**
 * Choose header or footer loading for JavaScript files
 * Automatically generates CSS files for better performance
 * Choose which post types to enable
@@ -123,6 +123,12 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 
 == Changelog ==
 
+= 1.1.1 =
+* SECURITY: Enhanced path traversal protection in ajax_remove_file()
+* SECURITY: Added MIME type validation using finfo_file() in ajax_upload_file()
+* FEATURE: Automatic filename conflict resolution (adds -1, -2, etc.)
+* IMPROVED: File upload security with comprehensive validation
+
 = 1.1.0 =
 * NEW: Unlimited style selection (previously limited to 2)
 * NEW: Drag & drop reordering for selected styles (ACF-style sortable UI)
@@ -156,6 +162,9 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 * Security: File path validation
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Important security update! Enhanced file upload validation with MIME type checking and improved path traversal protection. Recommended for all users.
 
 = 1.1.0 =
 Major update! Unlimited style selection with drag & drop, file upload support for CSS/JS, and improved load order control. Fully backward compatible with v1.0.x.
