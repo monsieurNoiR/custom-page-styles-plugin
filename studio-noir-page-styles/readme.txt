@@ -1,6 +1,6 @@
 === Studio Noir Custom Page Styles ===
 Contributors: studionoir
-Tags: css, custom css, page styles, post styles, reusable css, file upload
+Tags: css, custom css, page styles, reusable css, file upload
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
