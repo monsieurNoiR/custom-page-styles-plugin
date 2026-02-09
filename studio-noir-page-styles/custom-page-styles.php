@@ -3,7 +3,7 @@
  * Plugin Name: Studio Noir Custom Page Styles
  * Plugin URI: https://github.com/monsieurNoiR/custom-page-styles-plugin
  * Description: Manage custom CSS for each page/post with reusability feature. Write CSS directly in the editor and reuse styles across multiple pages.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * Author: Masaki Kobayashi (studioNoiR)
@@ -31,7 +31,7 @@ class SN_CPS_Manager {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.1.0';
+	const VERSION = '1.1.1';
 
 	/**
 	 * Meta key for custom CSS content
@@ -1189,6 +1189,23 @@ class SN_CPS_Manager {
 			wp_send_json_error( __( 'Only CSS and JS files are allowed', 'studio-noir-page-styles' ) );
 		}
 
+		// Validate MIME type
+		$finfo = finfo_open( FILEINFO_MIME_TYPE );
+		$mime_type = finfo_file( $finfo, $file['tmp_name'] );
+		finfo_close( $finfo );
+
+		$allowed_mimes = array(
+			'text/css',
+			'text/plain',
+			'text/javascript',
+			'application/javascript',
+			'application/x-javascript',
+		);
+
+		if ( ! in_array( $mime_type, $allowed_mimes, true ) ) {
+			wp_send_json_error( __( 'Invalid file content type', 'studio-noir-page-styles' ) );
+		}
+
 		// Validate file size (5MB max)
 		if ( $file['size'] > 5242880 ) {
 			wp_send_json_error( __( 'File size must be less than 5MB', 'studio-noir-page-styles' ) );
@@ -1206,6 +1223,23 @@ class SN_CPS_Manager {
 
 		// Move uploaded file
 		$target_file = trailingslashit( $post_upload_dir ) . $filename;
+
+		// Handle filename conflicts by adding counter
+		if ( file_exists( $target_file ) ) {
+			$file_info = pathinfo( $filename );
+			$counter = 1;
+			do {
+				$new_filename = $file_info['filename'] . '-' . $counter . '.' . $file_info['extension'];
+				$target_file = trailingslashit( $post_upload_dir ) . $new_filename;
+				$counter++;
+			} while ( file_exists( $target_file ) && $counter < 100 ); // Limit to prevent infinite loop
+
+			if ( $counter >= 100 ) {
+				wp_send_json_error( __( 'Too many files with the same name', 'studio-noir-page-styles' ) );
+			}
+
+			$filename = $new_filename;
+		}
 
 		if ( ! move_uploaded_file( $file['tmp_name'], $target_file ) ) {
 			wp_send_json_error( __( 'Failed to save file', 'studio-noir-page-styles' ) );
@@ -1260,6 +1294,15 @@ class SN_CPS_Manager {
 		$file_path = trailingslashit( $post_upload_dir ) . $filename;
 
 		if ( file_exists( $file_path ) ) {
+			// Verify the file path is within the expected directory (prevent path traversal)
+			$real_upload_dir = realpath( $post_upload_dir );
+			$real_file_path = realpath( $file_path );
+
+			if ( false === $real_upload_dir || false === $real_file_path ||
+			     false === strpos( $real_file_path, $real_upload_dir ) ) {
+				wp_send_json_error( __( 'Invalid file path detected', 'studio-noir-page-styles' ) );
+			}
+
 			$filesystem = $this->get_filesystem();
 			if ( $filesystem ) {
 				$filesystem->delete( $file_path );
