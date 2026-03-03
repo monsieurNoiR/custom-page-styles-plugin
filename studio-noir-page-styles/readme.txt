@@ -48,6 +48,14 @@ Styles are loaded in the following order for maximum flexibility:
 2. Uploaded files (libraries and frameworks)
 3. Direct CSS (final adjustments and overrides)
 
+== Support Development ==
+
+If you find this plugin helpful, consider supporting its development:
+
+☕ [Buy me a coffee on Ko-fi](https://ko-fi.com/studio_noir)
+
+Your support helps me continue creating free, open-source WordPress plugins!
+
 == Installation ==
 
 = Automatic Installation =
