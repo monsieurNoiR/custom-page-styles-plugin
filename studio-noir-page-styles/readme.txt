@@ -12,7 +12,7 @@ Manage custom CSS for each page/post with unlimited style selection, file upload
 
 == Description ==
 
-Studio Noir Custom Page Styles allows you to add custom CSS to individual pages and posts, with powerful features for reusability and file management.
+Tired of copy-pasting the same CSS across multiple pages? Studio Noir Custom Page Styles lets you write a style once and reuse it on any page — no duplicates, no maintenance headaches.
 
 = Key Features =
 
