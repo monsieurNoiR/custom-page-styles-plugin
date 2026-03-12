@@ -4,7 +4,7 @@ Tags: css, custom css, page styles, reusable css, file upload
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -131,6 +131,17 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 
 == Changelog ==
 
+= 2.0.0 =
+* NEW: Style Library — manage reusable CSS as independent entries (Custom Post Type)
+* NEW: "Save to Library" button — register a page's CSS as a named reusable style
+* NEW: "Sync to Library" button — overwrite or fork an existing Library entry
+* NEW: Automatic migration from v1.x data to Style Library entries
+* NEW: Migration error notice with Retry / Dismiss actions
+* NEW: Trash warning when a page with unregistered CSS is moved to trash
+* IMPROVED: Style selector now uses Library entry names instead of page titles
+* IMPROVED: Library entry deletion cleans up CSS files, uploaded files, and page references
+* IMPROVED: Uninstall routine now removes all v2.0 data (CPT, meta keys, options)
+
 = 1.1.1 =
 * SECURITY: Enhanced path traversal protection in ajax_remove_file()
 * SECURITY: Added MIME type validation using finfo_file() in ajax_upload_file()
@@ -170,6 +181,9 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 * Security: File path validation
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Major update! Introduces the Style Library — a dedicated Custom Post Type for managing reusable styles. Existing CSS is automatically migrated on first activation. Fully backward compatible with v1.x data.
 
 = 1.1.1 =
 Important security update! Enhanced file upload validation with MIME type checking and improved path traversal protection. Recommended for all users.

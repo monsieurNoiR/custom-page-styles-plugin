@@ -19,39 +19,41 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 function sn_cps_uninstall() {
 	global $wpdb;
 
-	// Remove all post meta data
+	// Delete all Style Library (sn_cps_style) posts and their meta
+	$library_ids = $wpdb->get_col(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'sn_cps_style'"
+	);
+	foreach ( $library_ids as $post_id ) {
+		wp_delete_post( absint( $post_id ), true );
+	}
+
+	// Remove all post meta data (v1.x and v2.0 keys)
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s OR meta_key = %s",
+			"DELETE FROM {$wpdb->postmeta} WHERE meta_key IN (%s, %s, %s, %s, %s)",
 			'_sn_cps_css',
-			'_sn_cps_selected'
+			'_sn_cps_selected',
+			'_sn_cps_library_ids',
+			'_sn_cps_linked_library_id',
+			'_sn_cps_uploaded_files'
 		)
 	);
 
 	// Remove plugin options
 	delete_option( 'sn_cps_enabled_post_types' );
+	delete_option( 'sn_cps_db_version' );
+	delete_option( 'sn_cps_migration_errors' );
 
 	// Remove CSS files directory
 	$upload_dir = wp_upload_dir();
 	$css_dir    = trailingslashit( $upload_dir['basedir'] ) . 'sn-cps-styles';
 
 	if ( file_exists( $css_dir ) ) {
-		// Use WordPress Filesystem API for safe file deletion
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		WP_Filesystem();
 		global $wp_filesystem;
 
 		if ( $wp_filesystem ) {
-			// Delete all files in the directory
-			$files = $wp_filesystem->dirlist( $css_dir );
-			if ( is_array( $files ) ) {
-				foreach ( $files as $file => $file_info ) {
-					$file_path = trailingslashit( $css_dir ) . $file;
-					$wp_filesystem->delete( $file_path );
-				}
-			}
-
-			// Delete the directory itself
 			$wp_filesystem->delete( $css_dir, true );
 		}
 	}
