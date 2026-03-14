@@ -218,8 +218,8 @@ echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 **最新バージョン:** v2.0.0（実装完了・GitHub push済み）
 
 **リリース状況:**
-- GitHub: `main` ブランチ、最新コミット `312d0dc`
-- WordPress.org SVN: 未反映（v1.1.1 = `r3480851` が最新）
+- GitHub: `main` ブランチ、最新コミット `f3bae99`
+- WordPress.org SVN: v2.0.0 = `r3482556`（trunk + tags/2.0.0 + assets 更新済み）
 
 **直近の作業 (2026-03-14):**
 - 実機インストールで v2.0.0 の動作確認完了（マイグレーション・Save/Sync to Library・Style Library 一覧）
@@ -227,5 +227,4 @@ echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 - `readme.txt` の `== Screenshots ==` セクションを v2.0 内容に更新
 
 **次のアクション:**
-- WordPress.org SVN に v2.0.0 をコミット（trunk + tags/2.0.0）
-- SVN `assets/` にスクショをアップロード
+- なし（v2.0.0 リリース完了）
