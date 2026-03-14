@@ -215,15 +215,17 @@ echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 
 ## 現在の状態
 
-**最新バージョン:** v1.1.1（リリース済み）
+**最新バージョン:** v2.0.0（実装完了・GitHub push済み）
 
 **リリース状況:**
-- GitHub: タグ `v1.1.1`、最新コミット `07328b5`
-- WordPress.org SVN: 最新リビジョン `r3480851`（trunk）
+- GitHub: `main` ブランチ、最新コミット `312d0dc`
+- WordPress.org SVN: 未反映（v1.1.1 = `r3480851` が最新）
 
-**直近の作業 (2026-03-12):**
-- readme.txt の Description 冒頭を「問題提起→解決」の流れに書き直し
-  - "Tired of copy-pasting..." で始まる差別化訴求文に変更
-- SVN trunk + GitHub main に反映済み
+**直近の作業 (2026-03-14):**
+- 実機インストールで v2.0.0 の動作確認完了（マイグレーション・Save/Sync to Library・Style Library 一覧）
+- スクショ4枚を `assets/` に保存（screenshot-1.jpg 〜 screenshot-4.jpg）
+- `readme.txt` の `== Screenshots ==` セクションを v2.0 内容に更新
 
-**次のアクション:** 特になし（コードは変更なし）
+**次のアクション:**
+- WordPress.org SVN に v2.0.0 をコミット（trunk + tags/2.0.0）
+- SVN `assets/` にスクショをアップロード

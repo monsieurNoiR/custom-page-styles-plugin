@@ -125,9 +125,10 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 
 == Screenshots ==
 
-1. Custom Page Styles meta box with file upload interface
-2. Drag & drop reordering of selected styles
-3. Settings page to choose enabled post types
+1. Custom Page Styles meta box — file upload, inline CSS editor, and Save/Sync to Library buttons
+2. Sync to Library dialog — overwrite existing style or save as new style
+3. Settings page — choose which post types have the meta box enabled
+4. Style Library list — manage reusable styles as named entries
 
 == Changelog ==
 
