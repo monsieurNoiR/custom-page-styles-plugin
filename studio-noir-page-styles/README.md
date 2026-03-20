@@ -172,9 +172,9 @@ custom-page-styles-project/
 │   ├── uninstall.php             # アンインストール時のクリーンアップ
 │   ├── README.md                 # このファイル
 │   ├── readme.txt                # WordPress.org用README
+│   ├── SECURITY.md               # セキュリティチェックリスト
 │   └── languages/                # 翻訳ファイル
-├── custom-page-styles.zip        # 配布用zipファイル
-└── wordpress-org-svn/            # WordPress.org SVN用
+└── studio-noir-page-styles.zip   # 配布用zipファイル
 ```
 
 ### 生成されるファイル（v1.1.0）
@@ -203,8 +203,10 @@ wp-content/uploads/
 | メタキー | 説明 | データ型 | バージョン |
 |---------|------|---------|-----------|
 | `_sn_cps_css` | カスタムCSS内容 | string (text) | v1.0.0+ |
-| `_sn_cps_selected` | 選択されたスタイルシートID配列 | array | v1.0.0+ (v1.1.0で配列化) |
+| `_sn_cps_selected` | 選択されたスタイルシートID配列（v1.x レガシー） | array | v1.0.0+ (v1.1.0で配列化) |
 | `_sn_cps_uploaded_files` | アップロードファイル情報配列 | array | v1.1.0+ |
+| `_sn_cps_library_ids` | 適用するLibraryエントリIDの配列 | array | v2.0.0+ |
+| `_sn_cps_linked_library` | Save to Library で紐付けたLibraryエントリID | int | v2.0.0+ |
 
 #### `_sn_cps_uploaded_files` 構造例（v1.1.0）
 
@@ -277,6 +279,11 @@ array(
 - `admin_enqueue_scripts` - 管理画面でjQuery UI Sortableエンキュー（v1.1.0）
 - `wp_ajax_sn_cps_upload_file` - ファイルアップロードAJAXハンドラー（v1.1.0）
 - `wp_ajax_sn_cps_remove_file` - ファイル削除AJAXハンドラー（v1.1.0）
+- `wp_ajax_sn_cps_save_to_library` - Save to Library AJAXハンドラー（v2.0.0）
+- `wp_ajax_sn_cps_sync_to_library` - Sync to Library AJAXハンドラー（v2.0.0）
+- `wp_ajax_sn_cps_retry_migration` - マイグレーション再試行AJAXハンドラー（v2.0.0）
+- `wp_ajax_sn_cps_dismiss_migration_notice` - マイグレーション通知非表示AJAXハンドラー（v2.0.0）
+- `before_delete_post` - 投稿削除時のCSSファイル・Libraryリンクのクリーンアップ（v2.0.0）
 
 ### 定数
 
