@@ -318,6 +318,12 @@ GPL v2 or later
 
 ## 変更履歴
 
+### 2.0.1 (2026-03-20)
+- **バグ修正: Save to Library / Sync to Library がtextareaの最新CSS値を使用するよう修正**
+  - 従来はDBに保存済みの値を参照していたため、投稿を保存する前にボタンを押すと空のCSSが登録されていた
+  - AJAXリクエストにtextareaの現在値を含め、サーバー側でサニタイズ・使用するよう変更
+  - Save to Library / Sync to Library 実行時にポスト自身のCSSも同時に保存・CSS ファイルを生成するよう修正
+
 ### 2.0.0 (2026-03-12)
 - **新機能: Style Library（スタイルライブラリ）**
   - `sn_cps_style` カスタム投稿タイプを導入

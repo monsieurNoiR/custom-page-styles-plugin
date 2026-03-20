@@ -4,7 +4,7 @@ Tags: css, custom css, page styles, reusable css, file upload
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -131,6 +131,10 @@ Yes, Studio Noir Custom Page Styles works alongside page builders like Elementor
 4. Style Library list — manage reusable styles as named entries
 
 == Changelog ==
+
+= 2.0.1 =
+* FIX: Save to Library and Sync to Library now correctly use the current textarea CSS instead of the stale database value
+* FIX: Syncing to Library no longer clears the Library entry's CSS when the post had not been saved first
 
 = 2.0.0 =
 * NEW: Style Library — manage reusable CSS as independent entries (Custom Post Type)

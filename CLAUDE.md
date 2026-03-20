@@ -215,16 +215,19 @@ echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 
 ## 現在の状態
 
-**最新バージョン:** v2.0.0（実装完了・GitHub push済み）
+**最新バージョン:** v2.0.1（実装完了・GitHub push済み）
 
 **リリース状況:**
-- GitHub: `main` ブランチ、最新コミット `f3bae99`
-- WordPress.org SVN: v2.0.0 = `r3482556`（trunk + tags/2.0.0 + assets 更新済み）
+- GitHub: `main` ブランチ（v2.0.1 バグ修正済み）
+- WordPress.org SVN: v2.0.0 = `r3482556`（v2.0.1 はまだ未反映）
 
-**直近の作業 (2026-03-14):**
-- 実機インストールで v2.0.0 の動作確認完了（マイグレーション・Save/Sync to Library・Style Library 一覧）
-- スクショ4枚を `assets/` に保存（screenshot-1.jpg 〜 screenshot-4.jpg）
-- `readme.txt` の `== Screenshots ==` セクションを v2.0 内容に更新
+**直近の作業 (2026-03-20):**
+- バグ修正: Save to Library / Sync to Library がtextareaの最新CSS値を使用するよう修正
+  - AJAXリクエストに `css: $('#sn_cps_css').val()` を追加
+  - `ajax_save_to_library()` / `ajax_sync_to_library()` でPOSTのcss値を優先使用
+  - 同時にポスト自身のCSSもDBとファイルに保存するよう修正
+- バージョンを v2.0.1 に更新（custom-page-styles.php ヘッダー・定数・readme.txt・README.md）
+- 配布用 studio-noir-page-styles.zip を v2.0.1 内容で更新
 
 **次のアクション:**
-- なし（v2.0.0 リリース完了）
+- WordPress.org SVN に v2.0.1 を反映（trunk + tags/2.0.1）

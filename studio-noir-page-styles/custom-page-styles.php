@@ -3,7 +3,7 @@
  * Plugin Name: Studio Noir Custom Page Styles
  * Plugin URI: https://github.com/monsieurNoiR/custom-page-styles-plugin
  * Description: Manage custom CSS for each page/post with a Style Library for reusable styles, file uploads, and drag & drop ordering.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * Author: Masaki Kobayashi (studioNoiR)
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SN_CPS_Manager {
 
-	const VERSION = '2.0.0';
+	const VERSION = '2.0.1';
 
 	/** Meta key for custom CSS content */
 	const SN_CPS_META_KEY_CSS = '_sn_cps_css';
