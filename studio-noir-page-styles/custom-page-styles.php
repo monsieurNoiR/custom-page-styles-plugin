@@ -559,7 +559,7 @@ class SN_CPS_Manager {
 				var $btn = $(this).prop('disabled', true);
 				$.ajax({
 					url: ajaxurl, type: 'POST',
-					data: { action: 'sn_cps_save_to_library', post_id: <?php echo absint( $post->ID ); ?>, style_name: styleName.trim(), nonce: '<?php echo esc_js( wp_create_nonce( 'sn_cps_save_to_library' ) ); ?>' },
+					data: { action: 'sn_cps_save_to_library', post_id: <?php echo absint( $post->ID ); ?>, style_name: styleName.trim(), css: $('#sn_cps_css').val(), nonce: '<?php echo esc_js( wp_create_nonce( 'sn_cps_save_to_library' ) ); ?>' },
 					success: function(response) {
 						if (response.success) { location.reload(); }
 						else { alert(response.data || '<?php esc_html_e( 'Failed to save to Library.', 'studio-noir-page-styles' ); ?>'); $btn.prop('disabled', false); }
@@ -593,7 +593,7 @@ class SN_CPS_Manager {
 				var $btn = $(this).prop('disabled', true);
 				$.ajax({
 					url: ajaxurl, type: 'POST',
-					data: { action: 'sn_cps_sync_to_library', post_id: <?php echo absint( $post->ID ); ?>, library_id: libraryId, mode: mode, style_name: styleName, nonce: '<?php echo esc_js( wp_create_nonce( 'sn_cps_sync_to_library' ) ); ?>' },
+					data: { action: 'sn_cps_sync_to_library', post_id: <?php echo absint( $post->ID ); ?>, library_id: libraryId, mode: mode, style_name: styleName, css: $('#sn_cps_css').val(), nonce: '<?php echo esc_js( wp_create_nonce( 'sn_cps_sync_to_library' ) ); ?>' },
 					success: function(response) {
 						if (response.success) { location.reload(); }
 						else { alert(response.data || '<?php esc_html_e( 'Sync failed.', 'studio-noir-page-styles' ); ?>'); $btn.prop('disabled', false); }
@@ -1431,8 +1431,22 @@ class SN_CPS_Manager {
 			wp_send_json_error( __( 'Failed to create Library entry', 'studio-noir-page-styles' ) );
 		}
 
-		$css = get_post_meta( $post_id, self::SN_CPS_META_KEY_CSS, true );
+		// Use CSS from the AJAX request (current textarea value) if provided; fall back to post meta.
+		if ( isset( $_POST['css'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$css = $this->sanitize_css( wp_unslash( $_POST['css'] ) );
+			if ( is_wp_error( $css ) ) {
+				wp_send_json_error( $css->get_error_message() );
+			}
+		} else {
+			$css = get_post_meta( $post_id, self::SN_CPS_META_KEY_CSS, true );
+		}
+
 		if ( ! empty( $css ) ) {
+			// Save to the post itself so the frontend also reflects the current CSS.
+			update_post_meta( $post_id, self::SN_CPS_META_KEY_CSS, $css );
+			$this->generate_css_file( $post_id, $css );
+			// Save to the Library entry.
 			update_post_meta( $library_entry_id, self::SN_CPS_META_KEY_CSS, $css );
 			$this->generate_css_file( $library_entry_id, $css );
 		}
@@ -1473,8 +1487,24 @@ class SN_CPS_Manager {
 			wp_send_json_error( __( 'Invalid mode', 'studio-noir-page-styles' ) );
 		}
 
-		$css            = get_post_meta( $post_id, self::SN_CPS_META_KEY_CSS, true );
+		// Use CSS from the AJAX request (current textarea value) if provided; fall back to post meta.
+		if ( isset( $_POST['css'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$css = $this->sanitize_css( wp_unslash( $_POST['css'] ) );
+			if ( is_wp_error( $css ) ) {
+				wp_send_json_error( $css->get_error_message() );
+			}
+		} else {
+			$css = get_post_meta( $post_id, self::SN_CPS_META_KEY_CSS, true );
+		}
+
 		$uploaded_files = get_post_meta( $post_id, self::SN_CPS_META_KEY_UPLOADED, true );
+
+		// Save the current CSS to the post itself so the frontend reflects it immediately.
+		if ( ! empty( $css ) ) {
+			update_post_meta( $post_id, self::SN_CPS_META_KEY_CSS, $css );
+			$this->generate_css_file( $post_id, $css );
+		}
 
 		if ( 'overwrite' === $mode ) {
 			$library_post = get_post( $library_id );
