@@ -230,4 +230,4 @@ echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 - 配布用 studio-noir-page-styles.zip を v2.0.1 内容で更新
 
 **次のアクション:**
-- WordPress.org SVN に v2.0.1 を反映（trunk + tags/2.0.1）
+- なし（v2.0.1 リリース完了）
