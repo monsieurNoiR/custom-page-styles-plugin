@@ -208,6 +208,17 @@ CURRENT_DATE=$(date +%Y-%m-%d)
 echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 ```
 
+## README.md の二重管理ルール
+
+このリポジトリには README.md が2箇所に存在する（二重管理）:
+
+| ファイル | 用途 |
+|---------|------|
+| `/README.md` | GitHubリポジトリトップページに表示される |
+| `/studio-noir-page-styles/README.md` | プラグイン本体に同梱・SVNにも存在 |
+
+**ルール: どちらか一方を編集したら、もう一方も必ず同じ内容に更新してからコミット・pushすること。**
+
 ## Notes
 
 このルールはWordPress.orgのレビューで実際に指摘された内容に基づいています。
@@ -229,5 +240,9 @@ echo "### v1.1.1 ($CURRENT_DATE)" >> README.md
 - バージョンを v2.0.1 に更新（custom-page-styles.php ヘッダー・定数・readme.txt・README.md）
 - 配布用 studio-noir-page-styles.zip を v2.0.1 内容で更新
 
+**直近の作業 (2026-04-09):**
+- ルートに `README.md` を追加してGitHub push（リポジトリトップに表示されるよう対応）
+- `studio-noir-page-styles/README.md` との二重管理ルールを `CLAUDE.md` に追記
+
 **次のアクション:**
-- なし（v2.0.1 リリース完了）
+- なし
